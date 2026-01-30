@@ -14,11 +14,16 @@ local defaults = {
     ui = {
         scale = 1.0,
         locked = false,
+        visible = false,
         position = {
             point = "CENTER",
             relativePoint = "CENTER",
             xOfs = 0,
             yOfs = 0,
+        },
+        size = {
+            width = 320,
+            height = 420,
         },
         sortMode = "value",
         sortAscending = false,

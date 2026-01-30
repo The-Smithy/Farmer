@@ -49,6 +49,10 @@ function eventHandlers:PLAYER_LOGIN()
     -- Check for Auctionator
     addon.hasAuctionator = (Auctionator ~= nil) or (AUCTIONATOR_ENABLE ~= nil)
     
+    -- Restore sort settings
+    addon.currentSortMode = addon:GetSetting("ui.sortMode") or "value"
+    addon.sortAscending = addon:GetSetting("ui.sortAscending") or false
+    
     -- Show welcome message if enabled
     if addon:GetSetting("features.showWelcome") then
         local ahStatus = addon.hasAuctionator and "|cff00ff00Auctionator detected|r" or "|cffff9900Auctionator not found (using vendor prices)|r"
@@ -58,11 +62,20 @@ function eventHandlers:PLAYER_LOGIN()
     
     -- Initialize any UI elements here
     addon:CreateMainFrame()
+    
+    -- Restore UI visibility
+    if addon:GetSetting("ui.visible") then
+        addon.mainFrame:Show()
+        addon:UpdateMainFrame()
+    end
 end
 
 -- PLAYER_LOGOUT: Player is logging out
 function eventHandlers:PLAYER_LOGOUT()
-    -- Save any data before logout
+    -- Save visibility state before logout/reload
+    if addon.mainFrame then
+        addon:SetSetting("ui.visible", addon.mainFrame:IsShown())
+    end
     addon:Debug("Saving data before logout")
 end
 
@@ -192,6 +205,7 @@ function addon:ProcessLootedItem(itemLink, count)
     -- Track individual items
     if not session.itemsLooted[itemID] then
         session.itemsLooted[itemID] = {
+            itemID = itemID,
             count = 0,
             vendorValue = 0,
             ahValue = 0,
@@ -415,7 +429,15 @@ local function CreateSortDropdown(parent)
     local text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     text:SetPoint("LEFT", 8, 0)
     text:SetTextColor(0.9, 0.9, 0.9)
-    text:SetText("Value")
+    -- Set initial text based on current sort mode
+    local sortModeName = "Value"
+    for _, mode in ipairs(addon.sortModes) do
+        if mode.id == addon.currentSortMode then
+            sortModeName = mode.name
+            break
+        end
+    end
+    text:SetText(sortModeName)
     dropdown.text = text
     
     local arrow = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -462,6 +484,7 @@ local function CreateSortDropdown(parent)
         
         item:SetScript("OnClick", function()
             addon.currentSortMode = sortMode.id
+            addon:SetSetting("ui.sortMode", sortMode.id)
             dropdown.text:SetText(sortMode.name)
             menu:Hide()
             addon:UpdateItemList()
@@ -591,9 +614,16 @@ function addon:CreateMainFrame()
     
     -- Main frame
     local frame = CreateFrame("Frame", "FarmerMainFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(320, 420)
+    
+    -- Get saved size or use defaults
+    local savedSize = self:GetSetting("ui.size") or { width = 320, height = 420 }
+    frame:SetSize(savedSize.width, savedSize.height)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
+    
+    -- Make frame resizable
+    frame:SetResizable(true)
+    frame:SetResizeBounds(280, 300, 500, 700)  -- min/max width/height
     
     local pos = self:GetSetting("ui.position")
     frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
@@ -623,13 +653,14 @@ function addon:CreateMainFrame()
     local closeBtn = CreateCloseButton(frame)
     closeBtn:SetScript("OnClick", function()
         frame:Hide()
+        addon:SetSetting("ui.visible", false)
     end)
     
     -- Stats section
     local statsSection = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     statsSection:SetPoint("TOPLEFT", 10, -35)
     statsSection:SetPoint("TOPRIGHT", -10, -35)
-    statsSection:SetHeight(95)
+    statsSection:SetHeight(105)
     CreateStyledBackdrop(statsSection, 0.5)
     
     -- Total value (big display with both vendor and AH)
@@ -694,7 +725,7 @@ function addon:CreateMainFrame()
     
     -- Items section header
     local itemsHeader = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    itemsHeader:SetPoint("TOPLEFT", 14, -140)
+    itemsHeader:SetPoint("TOPLEFT", 14, -150)
     itemsHeader:SetText("LOOTED ITEMS")
     itemsHeader:SetTextColor(0.5, 0.5, 0.5)
     itemsHeader:SetFont(itemsHeader:GetFont(), 9)
@@ -708,12 +739,12 @@ function addon:CreateMainFrame()
     
     -- Sort controls
     local sortLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    sortLabel:SetPoint("TOPRIGHT", -105, -140)
+    sortLabel:SetPoint("TOPRIGHT", -105, -150)
     sortLabel:SetText("Sort:")
     sortLabel:SetTextColor(0.5, 0.5, 0.5)
     
     local sortDropdown = CreateSortDropdown(frame)
-    sortDropdown:SetPoint("TOPRIGHT", -10, -137)
+    sortDropdown:SetPoint("TOPRIGHT", -10, -147)
     frame.sortDropdown = sortDropdown
     
     -- Sort direction button
@@ -731,12 +762,13 @@ function addon:CreateMainFrame()
     
     local sortDirText = sortDirBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     sortDirText:SetPoint("CENTER", 0, 0)
-    sortDirText:SetText("▼")
+    sortDirText:SetText(addon.sortAscending and "▲" or "▼")
     sortDirText:SetTextColor(0.7, 0.7, 0.7)
     frame.sortDirText = sortDirText
     
     sortDirBtn:SetScript("OnClick", function()
         addon.sortAscending = not addon.sortAscending
+        addon:SetSetting("ui.sortAscending", addon.sortAscending)
         sortDirText:SetText(addon.sortAscending and "▲" or "▼")
         addon:UpdateItemList()
     end)
@@ -753,8 +785,8 @@ function addon:CreateMainFrame()
     
     -- Column headers
     local headerRow = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    headerRow:SetPoint("TOPLEFT", 10, -155)
-    headerRow:SetPoint("TOPRIGHT", -10, -155)
+    headerRow:SetPoint("TOPLEFT", 10, -172)
+    headerRow:SetPoint("TOPRIGHT", -10, -172)
     headerRow:SetHeight(18)
     headerRow:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -781,7 +813,7 @@ function addon:CreateMainFrame()
     
     -- Scrollable item list
     local scrollFrame = CreateFrame("ScrollFrame", "FarmerScrollFrame", frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 10, -175)
+    scrollFrame:SetPoint("TOPLEFT", 10, -192)
     scrollFrame:SetPoint("BOTTOMRIGHT", -28, 50)
     
     -- Style the scroll bar
@@ -795,6 +827,7 @@ function addon:CreateMainFrame()
     scrollContent:SetSize(scrollFrame:GetWidth(), 1)
     scrollFrame:SetScrollChild(scrollContent)
     frame.scrollContent = scrollContent
+    frame.scrollFrame = scrollFrame
     
     -- Item rows pool
     frame.itemRows = {}
@@ -887,6 +920,36 @@ function addon:CreateMainFrame()
         })
     end)
     
+    -- Create resize handle
+    local resizeHandle = CreateFrame("Button", nil, frame)
+    resizeHandle:SetSize(16, 16)
+    resizeHandle:SetPoint("BOTTOMRIGHT", -2, 2)
+    resizeHandle:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    resizeHandle:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    resizeHandle:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    
+    resizeHandle:SetScript("OnMouseDown", function(self, button)
+        if button == "LeftButton" and not addon:GetSetting("ui.locked") then
+            frame:StartSizing("BOTTOMRIGHT")
+        end
+    end)
+    
+    resizeHandle:SetScript("OnMouseUp", function(self, button)
+        frame:StopMovingOrSizing()
+        -- Save new size
+        local width, height = frame:GetSize()
+        addon:SetSetting("ui.size", {
+            width = math.floor(width),
+            height = math.floor(height),
+        })
+        -- Update scroll content width
+        if frame.scrollContent then
+            frame.scrollContent:SetWidth(frame.scrollFrame:GetWidth())
+        end
+    end)
+    
+    frame.resizeHandle = resizeHandle
+    
     -- Apply scale
     frame:SetScale(self:GetSetting("ui.scale"))
     
@@ -920,8 +983,10 @@ function addon:CreateMainFrame()
             end
             if frame:IsShown() then
                 frame:Hide()
+                addon:SetSetting("ui.visible", false)
             else
                 frame:Show()
+                addon:SetSetting("ui.visible", true)
                 addon:UpdateMainFrame()
             end
         else
