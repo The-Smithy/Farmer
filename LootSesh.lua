@@ -207,7 +207,7 @@ function addon:ProcessLootedItem(itemLink, count)
     count = count or 1
     
     -- Get item info
-    local itemName, _, itemQuality, _, _, _, _, _, _, _, vendorPrice, _, _, _, _, _, _ = GetItemInfo(itemLink)
+    local itemName, _, itemQuality, _, _, _, _, _, _, itemTexture, vendorPrice, _, _, _, _, _, _ = GetItemInfo(itemLink)
     local itemID = GetItemInfoInstant(itemLink)
     
     if not itemID then
@@ -238,6 +238,7 @@ function addon:ProcessLootedItem(itemLink, count)
             name = itemName or "Unknown",
             quality = itemQuality or 1,
             link = itemLink,
+            texture = itemTexture,
         }
     end
     
@@ -575,14 +576,6 @@ local function CreateItemRow(parent, index)
     icon:SetPoint("LEFT", 4, 0)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     row.icon = icon
-    
-    -- Quality border for icon
-    local iconBorder = row:CreateTexture(nil, "OVERLAY")
-    iconBorder:SetSize(24, 24)
-    iconBorder:SetPoint("CENTER", icon, "CENTER", 0, 0)
-    iconBorder:SetTexture("Interface\\Buttons\\WHITE8x8")
-    iconBorder:SetVertexColor(0.3, 0.3, 0.3, 0.8)
-    row.iconBorder = iconBorder
     
     -- Item name
     local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1064,6 +1057,7 @@ function addon:GetSortedItems()
             count = data.count,
             quality = data.quality or 1,
             link = data.link,
+            texture = data.texture,
             value = useAH and data.ahValue or data.vendorValue,
             order = itemOrder,  -- Track insertion order for "recent" sorting
         })
@@ -1128,14 +1122,11 @@ function addon:UpdateItemList()
         row:SetWidth(scrollContent:GetWidth() - 4)
         
         -- Set icon
-        local itemTexture = GetItemIcon(itemData.id)
+        local itemTexture = itemData.texture or GetItemIcon(itemData.id)
         row.icon:SetTexture(itemTexture or "Interface\\Icons\\INV_Misc_QuestionMark")
         
-        -- Set quality border color
-        local qualityColor = QUALITY_COLORS[itemData.quality] or QUALITY_COLORS[1]
-        row.iconBorder:SetVertexColor(qualityColor[1], qualityColor[2], qualityColor[3], 0.8)
-        
         -- Set name with quality color
+        local qualityColor = QUALITY_COLORS[itemData.quality] or QUALITY_COLORS[1]
         local r, g, b = qualityColor[1], qualityColor[2], qualityColor[3]
         row.name:SetText(itemData.name)
         row.name:SetTextColor(r, g, b)
