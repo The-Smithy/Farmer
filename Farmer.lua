@@ -632,26 +632,40 @@ function addon:CreateMainFrame()
     statsSection:SetHeight(95)
     CreateStyledBackdrop(statsSection, 0.5)
     
-    -- Total value (big display)
+    -- Total value (big display with both vendor and AH)
     local totalLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    totalLabel:SetPoint("TOPLEFT", 12, -8)
+    totalLabel:SetPoint("TOPLEFT", 12, -6)
     totalLabel:SetText("SESSION TOTAL")
     totalLabel:SetTextColor(0.5, 0.5, 0.5)
-    totalLabel:SetFont(totalLabel:GetFont(), 9)
+    totalLabel:SetFont(totalLabel:GetFont(), 8)
     
-    local totalValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    totalValue:SetPoint("TOPLEFT", 12, -20)
-    totalValue:SetTextColor(1, 0.82, 0)
-    totalValue:SetFont(totalValue:GetFont(), 18)
-    totalValue:SetText("0g 0s 0c")
-    frame.totalValue = totalValue
+    -- Vendor total line
+    local vendorLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    vendorLabel:SetPoint("TOPLEFT", 12, -17)
+    vendorLabel:SetTextColor(0.6, 0.6, 0.6)
+    vendorLabel:SetFont(vendorLabel:GetFont(), 8)
+    vendorLabel:SetText("Vendor:")
     
-    -- Price mode indicator
-    local priceMode = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    priceMode:SetPoint("LEFT", totalValue, "RIGHT", 8, 0)
-    priceMode:SetTextColor(0.5, 0.5, 0.5)
-    priceMode:SetText("(Vendor)")
-    frame.priceMode = priceMode
+    local vendorValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    vendorValue:SetPoint("LEFT", vendorLabel, "RIGHT", 4, 0)
+    vendorValue:SetTextColor(1, 0.82, 0)
+    vendorValue:SetFont(vendorValue:GetFont(), 13)
+    vendorValue:SetText("0g 0s 0c")
+    frame.vendorTotalValue = vendorValue
+    
+    -- AH total line
+    local ahLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    ahLabel:SetPoint("TOPLEFT", 12, -32)
+    ahLabel:SetTextColor(0.6, 0.6, 0.6)
+    ahLabel:SetFont(ahLabel:GetFont(), 8)
+    ahLabel:SetText("AH:")
+    
+    local ahValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    ahValue:SetPoint("LEFT", ahLabel, "RIGHT", 4, 0)
+    ahValue:SetTextColor(0.3, 0.8, 1)
+    ahValue:SetFont(ahValue:GetFont(), 13)
+    ahValue:SetText("0g 0s 0c")
+    frame.ahTotalValue = ahValue
     
     CreateSeparator(statsSection, -45)
     
@@ -1076,9 +1090,7 @@ function addon:UpdateMainFrame()
     local session = self.charDB.session
     local useAH = self:GetSetting("features.useAHPrices")
     
-    -- Update price mode indicator and button
-    local priceType = useAH and "AH" or "Vendor"
-    frame.priceMode:SetText("(" .. priceType .. ")")
+    -- Update price mode button
     frame.togglePriceBtn.label:SetText(useAH and "Vendor" or "AH Prices")
     
     -- Session data
@@ -1087,8 +1099,11 @@ function addon:UpdateMainFrame()
     local itemValue = useAH and session.totalAHValue or session.totalVendorValue
     frame.itemsValue:SetText(self.utils.FormatMoney(itemValue))
     
-    local totalSession = session.rawGoldLooted + itemValue
-    frame.totalValue:SetText(self.utils.FormatMoney(totalSession))
+    -- Update both vendor and AH totals
+    local totalVendorSession = session.rawGoldLooted + session.totalVendorValue
+    local totalAHSession = session.rawGoldLooted + session.totalAHValue
+    frame.vendorTotalValue:SetText(self.utils.FormatMoney(totalVendorSession))
+    frame.ahTotalValue:SetText(self.utils.FormatMoney(totalAHSession))
     
     -- Gold per hour
     local gph = self:GetGoldPerHour()
