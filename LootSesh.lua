@@ -647,7 +647,7 @@ local function CreateSortDropdown(parent)
     
     local arrow = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     arrow:SetPoint("RIGHT", -6, 0)
-    arrow:SetText("▼")
+    arrow:SetText("v")
     arrow:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     
     -- Dropdown menu frame
@@ -974,7 +974,7 @@ function addon:CreateMainFrame()
     
     local filterArrow = filterBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     filterArrow:SetPoint("RIGHT", -4, 0)
-    filterArrow:SetText("▼")
+    filterArrow:SetText("v")
     filterArrow:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     filterBtn.arrow = filterArrow
     
@@ -999,43 +999,44 @@ function addon:CreateMainFrame()
     frame.filterMenu = filterMenu
     
     -- Helper function to create checkbox items
-    local function CreateFilterCheckbox(parent, label, filterKey, yOffset, icon)
+    local function CreateFilterCheckbox(parent, label, filterKey, yOffset, iconTexture)
         local checkFrame = CreateFrame("Button", nil, parent)
         checkFrame:SetSize(150, 18)
         checkFrame:SetPoint("TOPLEFT", 5, yOffset)
         checkFrame.filterKey = filterKey
         
-        -- Checkbox box
-        local checkbox = checkFrame:CreateTexture(nil, "ARTWORK")
-        checkbox:SetSize(12, 12)
-        checkbox:SetPoint("LEFT", 2, 0)
-        checkbox:SetColorTexture(theme.buttonBg.r, theme.buttonBg.g, theme.buttonBg.b, 1)
-        checkFrame.checkbox = checkbox
-        
-        -- Checkbox border
-        local checkBorder = checkFrame:CreateTexture(nil, "BORDER")
+        -- Checkbox box (background)
+        local checkBorder = checkFrame:CreateTexture(nil, "BACKGROUND")
         checkBorder:SetSize(14, 14)
-        checkBorder:SetPoint("CENTER", checkbox, "CENTER", 0, 0)
+        checkBorder:SetPoint("LEFT", 2, 0)
         checkBorder:SetColorTexture(theme.buttonBorder.r, theme.buttonBorder.g, theme.buttonBorder.b, 1)
         checkFrame.checkBorder = checkBorder
         
-        -- Checkmark
-        local checkmark = checkFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        local checkbox = checkFrame:CreateTexture(nil, "ARTWORK")
+        checkbox:SetSize(12, 12)
+        checkbox:SetPoint("CENTER", checkBorder, "CENTER", 0, 0)
+        checkbox:SetColorTexture(theme.buttonBg.r, theme.buttonBg.g, theme.buttonBg.b, 1)
+        checkFrame.checkbox = checkbox
+        
+        -- Checkmark (using a texture instead of unicode)
+        local checkmark = checkFrame:CreateTexture(nil, "OVERLAY")
+        checkmark:SetSize(10, 10)
         checkmark:SetPoint("CENTER", checkbox, "CENTER", 0, 0)
-        checkmark:SetText("✓")
-        checkmark:SetTextColor(0.2, 1, 0.2)
+        checkmark:SetTexture("Interface\\BUTTONS\\UI-CheckBox-Check")
+        checkmark:SetVertexColor(0.2, 1, 0.2)
         checkFrame.checkmark = checkmark
         
-        -- Icon (optional)
-        local iconText = checkFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        iconText:SetPoint("LEFT", checkbox, "RIGHT", 6, 0)
-        iconText:SetText(icon or "")
-        iconText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
-        checkFrame.icon = iconText
+        -- Icon texture
+        local iconTex = checkFrame:CreateTexture(nil, "ARTWORK")
+        iconTex:SetSize(14, 14)
+        iconTex:SetPoint("LEFT", checkBorder, "RIGHT", 4, 0)
+        iconTex:SetTexture(iconTexture or "Interface\\Icons\\INV_Misc_QuestionMark")
+        iconTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        checkFrame.iconTex = iconTex
         
         -- Label
         local labelText = checkFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        labelText:SetPoint("LEFT", iconText, "RIGHT", 4, 0)
+        labelText:SetPoint("LEFT", iconTex, "RIGHT", 4, 0)
         labelText:SetText(label)
         labelText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
         checkFrame.label = labelText
@@ -1089,12 +1090,12 @@ function addon:CreateMainFrame()
     headerLine:SetColorTexture(theme.separator.r, theme.separator.g, theme.separator.b, theme.separator.a)
     filterMenu.headerLine = headerLine
     
-    -- Pickup checkbox
-    local pickupCheck = CreateFilterCheckbox(filterMenu, "Pickup (mobs/chests)", "showPickup", -24, "⚔")
+    -- Pickup checkbox (sword icon)
+    local pickupCheck = CreateFilterCheckbox(filterMenu, "Pickup (mobs/chests)", "showPickup", -24, "Interface\\Icons\\INV_Sword_04")
     filterMenu.pickupCheck = pickupCheck
     
-    -- Gathered checkbox
-    local gatheredCheck = CreateFilterCheckbox(filterMenu, "Gathered (nodes)", "showGathered", -44, "⛏")
+    -- Gathered checkbox (mining pick icon)
+    local gatheredCheck = CreateFilterCheckbox(filterMenu, "Gathered (nodes)", "showGathered", -44, "Interface\\Icons\\Trade_Mining")
     filterMenu.gatheredCheck = gatheredCheck
     
     -- Separator before quick actions
@@ -1194,7 +1195,7 @@ function addon:CreateMainFrame()
     
     local sortDirText = sortDirBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     sortDirText:SetPoint("CENTER", 0, 0)
-    sortDirText:SetText(addon.sortAscending and "▲" or "▼")
+    sortDirText:SetText(addon.sortAscending and "^" or "v")
     sortDirText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     frame.sortDirText = sortDirText
     frame.sortDirBtn = sortDirBtn
@@ -1202,7 +1203,7 @@ function addon:CreateMainFrame()
     sortDirBtn:SetScript("OnClick", function()
         addon.sortAscending = not addon.sortAscending
         addon:SetSetting("ui.sortAscending", addon.sortAscending)
-        sortDirText:SetText(addon.sortAscending and "▲" or "▼")
+        sortDirText:SetText(addon.sortAscending and "^" or "v")
         addon:UpdateItemList()
     end)
     sortDirBtn:SetScript("OnEnter", function(self)
