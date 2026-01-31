@@ -1,7 +1,7 @@
-## Interface: 20504
+## Interface: 20505
 ## Title: Loot Sesh
 ## Notes: Track looted items and calculate gold earned from vendor/AH prices
-## Author: YourName
+## Author: The Smithy
 ## Version: 1.0.0
 ## SavedVariables: LootSeshDB
 ## SavedVariablesPerCharacter: LootSeshCharDB
