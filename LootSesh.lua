@@ -337,8 +337,9 @@ addon.sortModes = {
 addon.currentSortMode = "value"
 addon.sortAscending = false
 
--- Create a styled backdrop
-local function CreateStyledBackdrop(frame, alpha)
+-- Create a styled backdrop (theme-aware)
+local function CreateStyledBackdrop(frame, alpha, isSection)
+    local theme = addon:GetCurrentTheme()
     alpha = alpha or 0.9
     frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -348,8 +349,11 @@ local function CreateStyledBackdrop(frame, alpha)
         edgeSize = 1,
         insets = { left = 0, right = 0, top = 0, bottom = 0 }
     })
-    frame:SetBackdropColor(0.08, 0.08, 0.12, alpha)
-    frame:SetBackdropBorderColor(0.3, 0.3, 0.35, 1)
+    
+    local bg = isSection and theme.sectionBg or theme.background
+    local border = theme.border
+    frame:SetBackdropColor(bg.r, bg.g, bg.b, alpha)
+    frame:SetBackdropBorderColor(border.r, border.g, border.b, border.a)
 end
 
 -- Create a highlight backdrop
@@ -362,27 +366,29 @@ local function CreateHighlightBackdrop(frame)
     frame:SetBackdropColor(1, 1, 1, 0.05)
 end
 
--- Create a separator line
+-- Create a separator line (theme-aware)
 local function CreateSeparator(parent, yOffset)
+    local theme = addon:GetCurrentTheme()
     local line = parent:CreateTexture(nil, "ARTWORK")
     line:SetHeight(1)
     line:SetPoint("LEFT", 12, 0)
     line:SetPoint("RIGHT", -12, 0)
     line:SetPoint("TOP", 0, yOffset)
-    line:SetColorTexture(0.4, 0.4, 0.45, 0.5)
+    line:SetColorTexture(theme.separator.r, theme.separator.g, theme.separator.b, theme.separator.a)
     return line
 end
 
--- Create a stat row
+-- Create a stat row (theme-aware)
 local function CreateStatRow(parent, label, yOffset)
+    local theme = addon:GetCurrentTheme()
     local labelText = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     labelText:SetPoint("TOPLEFT", 14, yOffset)
-    labelText:SetTextColor(0.7, 0.7, 0.7)
+    labelText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     labelText:SetText(label)
     
     local valueText = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     valueText:SetPoint("TOPRIGHT", -14, yOffset)
-    valueText:SetTextColor(1, 1, 1)
+    valueText:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
     valueText:SetJustifyH("RIGHT")
     
     return labelText, valueText
@@ -410,8 +416,9 @@ local function CreateCloseButton(parent)
     return btn
 end
 
--- Create styled button
+-- Create styled button (theme-aware)
 local function CreateStyledButton(parent, text, width, height)
+    local theme = addon:GetCurrentTheme()
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
     btn:SetSize(width or 70, height or 20)
     
@@ -422,29 +429,32 @@ local function CreateStyledButton(parent, text, width, height)
         edgeSize = 1,
         insets = { left = 0, right = 0, top = 0, bottom = 0 }
     })
-    btn:SetBackdropColor(0.15, 0.15, 0.2, 1)
-    btn:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+    btn:SetBackdropColor(theme.buttonBg.r, theme.buttonBg.g, theme.buttonBg.b, theme.buttonBg.a)
+    btn:SetBackdropBorderColor(theme.buttonBorder.r, theme.buttonBorder.g, theme.buttonBorder.b, theme.buttonBorder.a)
     
     local label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     label:SetPoint("CENTER", 0, 0)
     label:SetText(text)
-    label:SetTextColor(0.9, 0.9, 0.9)
+    label:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
     btn.label = label
     
     btn:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.25, 0.25, 0.35, 1)
-        self:SetBackdropBorderColor(0.5, 0.7, 1, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonHoverBg.r, t.buttonHoverBg.g, t.buttonHoverBg.b, t.buttonHoverBg.a)
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
     end)
     btn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.15, 0.15, 0.2, 1)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonBg.r, t.buttonBg.g, t.buttonBg.b, t.buttonBg.a)
+        self:SetBackdropBorderColor(t.buttonBorder.r, t.buttonBorder.g, t.buttonBorder.b, t.buttonBorder.a)
     end)
     
     return btn
 end
 
--- Create dropdown menu for sorting
+-- Create dropdown menu for sorting (theme-aware)
 local function CreateSortDropdown(parent)
+    local theme = addon:GetCurrentTheme()
     local dropdown = CreateFrame("Frame", "FarmerSortDropdown", parent, "BackdropTemplate")
     dropdown:SetSize(90, 22)
     
@@ -455,12 +465,12 @@ local function CreateSortDropdown(parent)
         edgeSize = 1,
         insets = { left = 0, right = 0, top = 0, bottom = 0 }
     })
-    dropdown:SetBackdropColor(0.12, 0.12, 0.16, 1)
-    dropdown:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+    dropdown:SetBackdropColor(theme.dropdownBg.r, theme.dropdownBg.g, theme.dropdownBg.b, theme.dropdownBg.a)
+    dropdown:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
     
     local text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     text:SetPoint("LEFT", 8, 0)
-    text:SetTextColor(0.9, 0.9, 0.9)
+    text:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
     -- Set initial text based on current sort mode
     local sortModeName = "Value"
     for _, mode in ipairs(addon.sortModes) do
@@ -475,7 +485,7 @@ local function CreateSortDropdown(parent)
     local arrow = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     arrow:SetPoint("RIGHT", -6, 0)
     arrow:SetText("▼")
-    arrow:SetTextColor(0.6, 0.6, 0.6)
+    arrow:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     
     -- Dropdown menu frame
     local menu = CreateFrame("Frame", "FarmerSortMenu", dropdown, "BackdropTemplate")
@@ -491,8 +501,8 @@ local function CreateSortDropdown(parent)
         edgeSize = 1,
         insets = { left = 0, right = 0, top = 0, bottom = 0 }
     })
-    menu:SetBackdropColor(0.1, 0.1, 0.14, 0.98)
-    menu:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+    menu:SetBackdropColor(theme.dropdownMenuBg.r, theme.dropdownMenuBg.g, theme.dropdownMenuBg.b, theme.dropdownMenuBg.a)
+    menu:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
     
     dropdown.menu = menu
     dropdown.options = {}
@@ -507,12 +517,12 @@ local function CreateSortDropdown(parent)
         local itemText = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         itemText:SetPoint("LEFT", 6, 0)
         itemText:SetText(sortMode.name)
-        itemText:SetTextColor(0.8, 0.8, 0.8)
+        itemText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
         item.text = itemText
         
         local highlight = item:CreateTexture(nil, "HIGHLIGHT")
         highlight:SetAllPoints()
-        highlight:SetColorTexture(0.3, 0.5, 0.8, 0.3)
+        highlight:SetColorTexture(theme.dropdownHighlight.r, theme.dropdownHighlight.g, theme.dropdownHighlight.b, theme.dropdownHighlight.a)
         
         item:SetScript("OnClick", function()
             addon.currentSortMode = sortMode.id
@@ -548,10 +558,12 @@ local function CreateSortDropdown(parent)
     end)
     
     dropdown:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(0.5, 0.7, 1, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
     end)
     dropdown:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropBorderColor(t.dropdownBorder.r, t.dropdownBorder.g, t.dropdownBorder.b, t.dropdownBorder.a)
     end)
     
     -- Close menu when clicking elsewhere
@@ -562,8 +574,9 @@ local function CreateSortDropdown(parent)
     return dropdown
 end
 
--- Create item row for the scroll list
+-- Create item row for the scroll list (theme-aware)
 local function CreateItemRow(parent, index)
+    local theme = addon:GetCurrentTheme()
     local row = CreateFrame("Button", nil, parent, "BackdropTemplate")
     row:SetSize(parent:GetWidth() - 4, 28)
     
@@ -572,7 +585,7 @@ local function CreateItemRow(parent, index)
         row:SetBackdrop({
             bgFile = "Interface\\Buttons\\WHITE8x8",
         })
-        row:SetBackdropColor(1, 1, 1, 0.03)
+        row:SetBackdropColor(theme.rowAltBg.r, theme.rowAltBg.g, theme.rowAltBg.b, theme.rowAltBg.a)
     end
     
     -- Item icon
@@ -595,7 +608,7 @@ local function CreateItemRow(parent, index)
     count:SetPoint("RIGHT", row, "RIGHT", -50, 0)
     count:SetWidth(25)
     count:SetJustifyH("RIGHT")
-    count:SetTextColor(0.7, 0.7, 0.7)
+    count:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     row.count = count
     
     -- Value
@@ -603,13 +616,13 @@ local function CreateItemRow(parent, index)
     value:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     value:SetWidth(42)
     value:SetJustifyH("RIGHT")
-    value:SetTextColor(1, 0.82, 0)
+    value:SetTextColor(theme.goldColor.r, theme.goldColor.g, theme.goldColor.b)
     row.value = value
     
     -- Highlight effect
     local highlight = row:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
+    highlight:SetColorTexture(theme.rowHighlight.r, theme.rowHighlight.g, theme.rowHighlight.b, theme.rowHighlight.a)
     
     -- Tooltip handling
     row:SetScript("OnEnter", function(self)
@@ -636,6 +649,8 @@ end
 function addon:CreateMainFrame()
     if self.mainFrame then return end
     
+    local theme = self:GetCurrentTheme()
+    
     -- Main frame
     local frame = CreateFrame("Frame", "FarmerMainFrame", UIParent, "BackdropTemplate")
     
@@ -659,19 +674,22 @@ function addon:CreateMainFrame()
     headerGradient:SetHeight(50)
     headerGradient:SetPoint("TOPLEFT", 1, -1)
     headerGradient:SetPoint("TOPRIGHT", -1, -1)
-    headerGradient:SetColorTexture(0.15, 0.4, 0.6, 0.15)
-    headerGradient:SetGradient("VERTICAL", CreateColor(0.15, 0.4, 0.6, 0), CreateColor(0.15, 0.4, 0.6, 0.2))
+    headerGradient:SetColorTexture(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, theme.headerGradient.a)
+    headerGradient:SetGradient("VERTICAL", CreateColor(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, 0), CreateColor(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, theme.headerGradient.a))
+    frame.headerGradient = headerGradient
     
     -- Title
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 14, -12)
-    title:SetText("|cff5ca8e0FARMER|r")
+    title:SetText(theme.titleColor .. theme.titleText .. "|r")
     title:SetFont(title:GetFont(), 14, "OUTLINE")
+    frame.title = title
     
     local subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     subtitle:SetPoint("LEFT", title, "RIGHT", 6, 0)
     subtitle:SetText("Loot Tracker")
-    subtitle:SetTextColor(0.6, 0.6, 0.6)
+    subtitle:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
+    frame.subtitle = subtitle
     
     -- Close button
     local closeBtn = CreateCloseButton(frame)
@@ -685,25 +703,28 @@ function addon:CreateMainFrame()
     statsSection:SetPoint("TOPLEFT", 10, -35)
     statsSection:SetPoint("TOPRIGHT", -10, -35)
     statsSection:SetHeight(105)
-    CreateStyledBackdrop(statsSection, 0.5)
+    CreateStyledBackdrop(statsSection, 0.5, true)
+    frame.statsSection = statsSection
     
     -- Total value (big display with both vendor and AH)
     local totalLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     totalLabel:SetPoint("TOPLEFT", 12, -6)
     totalLabel:SetText("SESSION TOTAL")
-    totalLabel:SetTextColor(0.5, 0.5, 0.5)
+    totalLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     totalLabel:SetFont(totalLabel:GetFont(), 8)
+    frame.totalLabel = totalLabel
     
     -- Vendor total line
     local vendorLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     vendorLabel:SetPoint("TOPLEFT", 12, -17)
-    vendorLabel:SetTextColor(0.6, 0.6, 0.6)
+    vendorLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     vendorLabel:SetFont(vendorLabel:GetFont(), 8)
     vendorLabel:SetText("Vendor:")
+    frame.vendorLabel = vendorLabel
     
     local vendorValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     vendorValue:SetPoint("LEFT", vendorLabel, "RIGHT", 4, 0)
-    vendorValue:SetTextColor(1, 0.82, 0)
+    vendorValue:SetTextColor(theme.goldColor.r, theme.goldColor.g, theme.goldColor.b)
     vendorValue:SetFont(vendorValue:GetFont(), 13)
     vendorValue:SetText("0g 0s 0c")
     frame.vendorTotalValue = vendorValue
@@ -711,39 +732,45 @@ function addon:CreateMainFrame()
     -- AH total line
     local ahLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     ahLabel:SetPoint("TOPLEFT", 12, -32)
-    ahLabel:SetTextColor(0.6, 0.6, 0.6)
+    ahLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     ahLabel:SetFont(ahLabel:GetFont(), 8)
     ahLabel:SetText("AH:")
+    frame.ahLabel = ahLabel
     
     local ahValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     ahValue:SetPoint("LEFT", ahLabel, "RIGHT", 4, 0)
-    ahValue:SetTextColor(0.3, 0.8, 1)
+    ahValue:SetTextColor(theme.ahColor.r, theme.ahColor.g, theme.ahColor.b)
     ahValue:SetFont(ahValue:GetFont(), 13)
     ahValue:SetText("0g 0s 0c")
     frame.ahTotalValue = ahValue
     
-    CreateSeparator(statsSection, -45)
+    local separator = CreateSeparator(statsSection, -45)
+    frame.separator = separator
     
     -- Stats grid
-    local _, goldValue = CreateStatRow(statsSection, "Raw Gold", -55)
+    local goldLabel, goldValue = CreateStatRow(statsSection, "Raw Gold", -55)
+    frame.sessionGoldLabel = goldLabel
     frame.sessionGold = goldValue
     
-    local _, itemsValue = CreateStatRow(statsSection, "Items Value", -70)
+    local itemsLabel, itemsValue = CreateStatRow(statsSection, "Items Value", -70)
+    frame.itemsValueLabel = itemsLabel
     frame.itemsValue = itemsValue
     
-    local _, gphValue = CreateStatRow(statsSection, "Gold/Hour", -85)
+    local gphLabel, gphValue = CreateStatRow(statsSection, "Gold/Hour", -85)
+    frame.gphLabel = gphLabel
     frame.gph = gphValue
     
     -- Duration and lifetime on right side
     local durationLabel = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     durationLabel:SetPoint("TOPRIGHT", -14, -8)
-    durationLabel:SetTextColor(0.5, 0.5, 0.5)
+    durationLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     durationLabel:SetFont(durationLabel:GetFont(), 9)
     durationLabel:SetText("DURATION")
+    frame.durationLabel = durationLabel
     
     local durationValue = statsSection:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     durationValue:SetPoint("TOPRIGHT", -14, -20)
-    durationValue:SetTextColor(1, 1, 1)
+    durationValue:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
     durationValue:SetText("0m")
     frame.duration = durationValue
     
@@ -751,44 +778,48 @@ function addon:CreateMainFrame()
     local itemsHeader = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     itemsHeader:SetPoint("TOPLEFT", 14, -150)
     itemsHeader:SetText("LOOTED ITEMS")
-    itemsHeader:SetTextColor(0.5, 0.5, 0.5)
+    itemsHeader:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
     itemsHeader:SetFont(itemsHeader:GetFont(), 9)
+    frame.itemsHeader = itemsHeader
     
     -- Item count
     local itemCountText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     itemCountText:SetPoint("LEFT", itemsHeader, "RIGHT", 6, 0)
-    itemCountText:SetTextColor(0.4, 0.4, 0.4)
+    itemCountText:SetTextColor(theme.mutedColor.r - 0.1, theme.mutedColor.g - 0.1, theme.mutedColor.b - 0.1)
     itemCountText:SetText("(0)")
+    itemCountText:SetWidth(40)  -- Limit width to prevent overlap
     frame.itemCountText = itemCountText
     
     -- Sort controls
     local sortLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    sortLabel:SetPoint("TOPRIGHT", -105, -150)
+    sortLabel:SetPoint("TOPRIGHT", -132, -150)
     sortLabel:SetText("Sort:")
-    sortLabel:SetTextColor(0.5, 0.5, 0.5)
+    sortLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
+    frame.sortLabel = sortLabel
     
     local sortDropdown = CreateSortDropdown(frame)
-    sortDropdown:SetPoint("TOPRIGHT", -10, -147)
+    sortDropdown:SetPoint("TOPRIGHT", -36, -147)
     frame.sortDropdown = sortDropdown
     
     -- Sort direction button
     local sortDirBtn = CreateFrame("Button", nil, frame, "BackdropTemplate")
     sortDirBtn:SetSize(22, 22)
-    sortDirBtn:SetPoint("RIGHT", sortDropdown, "LEFT", -4, 0)
+    sortDirBtn:SetPoint("TOPRIGHT", -10, -147)
     sortDirBtn:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         tile = false,
         edgeSize = 1,
     })
-    sortDirBtn:SetBackdropColor(0.12, 0.12, 0.16, 1)
-    sortDirBtn:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+    sortDirBtn:SetBackdropColor(theme.dropdownBg.r, theme.dropdownBg.g, theme.dropdownBg.b, theme.dropdownBg.a)
+    sortDirBtn:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
     
     local sortDirText = sortDirBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     sortDirText:SetPoint("CENTER", 0, 0)
     sortDirText:SetText(addon.sortAscending and "▲" or "▼")
-    sortDirText:SetTextColor(0.7, 0.7, 0.7)
+    sortDirText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     frame.sortDirText = sortDirText
+    frame.sortDirBtn = sortDirBtn
     
     sortDirBtn:SetScript("OnClick", function()
         addon.sortAscending = not addon.sortAscending
@@ -797,13 +828,15 @@ function addon:CreateMainFrame()
         addon:UpdateItemList()
     end)
     sortDirBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(0.5, 0.7, 1, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(addon.sortAscending and "Ascending" or "Descending", 1, 1, 1)
         GameTooltip:Show()
     end)
     sortDirBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropBorderColor(t.dropdownBorder.r, t.dropdownBorder.g, t.dropdownBorder.b, t.dropdownBorder.a)
         GameTooltip:Hide()
     end)
     
@@ -815,25 +848,29 @@ function addon:CreateMainFrame()
     headerRow:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
     })
-    headerRow:SetBackdropColor(0.15, 0.15, 0.2, 0.8)
+    headerRow:SetBackdropColor(theme.headerRowBg.r, theme.headerRowBg.g, theme.headerRowBg.b, theme.headerRowBg.a)
+    frame.headerRow = headerRow
     
     local colItem = headerRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     colItem:SetPoint("LEFT", 30, 0)
     colItem:SetText("Item")
-    colItem:SetTextColor(0.6, 0.6, 0.6)
+    colItem:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     colItem:SetFont(colItem:GetFont(), 9)
+    frame.colItem = colItem
     
     local colQty = headerRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     colQty:SetPoint("RIGHT", -52, 0)
     colQty:SetText("Qty")
-    colQty:SetTextColor(0.6, 0.6, 0.6)
+    colQty:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     colQty:SetFont(colQty:GetFont(), 9)
+    frame.colQty = colQty
     
     local colValue = headerRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     colValue:SetPoint("RIGHT", -8, 0)
     colValue:SetText("Value")
-    colValue:SetTextColor(0.6, 0.6, 0.6)
+    colValue:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b)
     colValue:SetFont(colValue:GetFont(), 9)
+    frame.colValue = colValue
     
     -- Scrollable item list
     local scrollFrame = CreateFrame("ScrollFrame", "FarmerScrollFrame", frame, "UIPanelScrollFrameTemplate")
@@ -862,24 +899,51 @@ function addon:CreateMainFrame()
     bottomSection:SetPoint("BOTTOMRIGHT", -10, 10)
     bottomSection:SetHeight(32)
     
+    -- Theme button
+    local themeBtn = CreateStyledButton(bottomSection, "Theme", 55, 24)
+    themeBtn:SetPoint("LEFT", 0, 0)
+    themeBtn:SetScript("OnClick", function()
+        addon:CycleTheme()
+        addon:ApplyTheme()
+    end)
+    themeBtn:SetScript("OnEnter", function(self)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonHoverBg.r, t.buttonHoverBg.g, t.buttonHoverBg.b, t.buttonHoverBg.a)
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        local themeSetting = addon:GetSetting("ui.theme") or "auto"
+        local themeNames = { auto = "Auto (Faction)", horde = "Horde", alliance = "Alliance", dark = "Dark" }
+        GameTooltip:SetText("Current: " .. themeNames[themeSetting] .. "\nClick to cycle themes", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    themeBtn:SetScript("OnLeave", function(self)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonBg.r, t.buttonBg.g, t.buttonBg.b, t.buttonBg.a)
+        self:SetBackdropBorderColor(t.buttonBorder.r, t.buttonBorder.g, t.buttonBorder.b, t.buttonBorder.a)
+        GameTooltip:Hide()
+    end)
+    frame.themeBtn = themeBtn
+    
     -- Toggle AH/Vendor button
     local togglePriceBtn = CreateStyledButton(bottomSection, "AH Prices", 70, 24)
-    togglePriceBtn:SetPoint("LEFT", 0, 0)
+    togglePriceBtn:SetPoint("LEFT", themeBtn, "RIGHT", 6, 0)
     togglePriceBtn:SetScript("OnClick", function()
         local current = addon:GetSetting("features.useAHPrices")
         addon:SetSetting("features.useAHPrices", not current)
         addon:UpdateMainFrame()
     end)
     togglePriceBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.25, 0.25, 0.35, 1)
-        self:SetBackdropBorderColor(0.5, 0.7, 1, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonHoverBg.r, t.buttonHoverBg.g, t.buttonHoverBg.b, t.buttonHoverBg.a)
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText("Toggle between AH and Vendor prices", 1, 1, 1)
         GameTooltip:Show()
     end)
     togglePriceBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.15, 0.15, 0.2, 1)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonBg.r, t.buttonBg.g, t.buttonBg.b, t.buttonBg.a)
+        self:SetBackdropBorderColor(t.buttonBorder.r, t.buttonBorder.g, t.buttonBorder.b, t.buttonBorder.a)
         GameTooltip:Hide()
     end)
     frame.togglePriceBtn = togglePriceBtn
@@ -898,10 +962,12 @@ function addon:CreateMainFrame()
         GameTooltip:Show()
     end)
     resetBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.15, 0.15, 0.2, 1)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonBg.r, t.buttonBg.g, t.buttonBg.b, t.buttonBg.a)
+        self:SetBackdropBorderColor(t.buttonBorder.r, t.buttonBorder.g, t.buttonBorder.b, t.buttonBorder.a)
         GameTooltip:Hide()
     end)
+    frame.resetBtn = resetBtn
     
     -- Lifetime stats button
     local lifetimeBtn = CreateStyledButton(bottomSection, "Lifetime", 60, 24)
@@ -910,17 +976,20 @@ function addon:CreateMainFrame()
         addon:ShowLifetimePopup()
     end)
     lifetimeBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.25, 0.25, 0.35, 1)
-        self:SetBackdropBorderColor(0.5, 0.7, 1, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonHoverBg.r, t.buttonHoverBg.g, t.buttonHoverBg.b, t.buttonHoverBg.a)
+        self:SetBackdropBorderColor(t.buttonHoverBorder.r, t.buttonHoverBorder.g, t.buttonHoverBorder.b, t.buttonHoverBorder.a)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText("View lifetime statistics", 1, 1, 1)
         GameTooltip:Show()
     end)
     lifetimeBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.15, 0.15, 0.2, 1)
-        self:SetBackdropBorderColor(0.4, 0.4, 0.45, 1)
+        local t = addon:GetCurrentTheme()
+        self:SetBackdropColor(t.buttonBg.r, t.buttonBg.g, t.buttonBg.b, t.buttonBg.a)
+        self:SetBackdropBorderColor(t.buttonBorder.r, t.buttonBorder.g, t.buttonBorder.b, t.buttonBorder.a)
         GameTooltip:Hide()
     end)
+    frame.lifetimeBtn = lifetimeBtn
     
     -- Make frame movable
     frame:SetMovable(true)
@@ -1044,6 +1113,116 @@ function addon:ShowLifetimePopup()
     
     -- Simple message display
     message(msg)
+end
+
+-- Apply theme to all UI elements
+function addon:ApplyTheme()
+    local frame = self.mainFrame
+    if not frame then return end
+    
+    local theme = self:GetCurrentTheme()
+    
+    -- Main frame background and border
+    frame:SetBackdropColor(theme.background.r, theme.background.g, theme.background.b, theme.background.a)
+    frame:SetBackdropBorderColor(theme.border.r, theme.border.g, theme.border.b, theme.border.a)
+    
+    -- Header gradient
+    if frame.headerGradient then
+        frame.headerGradient:SetColorTexture(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, theme.headerGradient.a)
+        frame.headerGradient:SetGradient("VERTICAL", CreateColor(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, 0), CreateColor(theme.headerGradient.r, theme.headerGradient.g, theme.headerGradient.b, theme.headerGradient.a))
+    end
+    
+    -- Title
+    if frame.title then
+        frame.title:SetText(theme.titleColor .. theme.titleText .. "|r")
+    end
+    if frame.subtitle then
+        frame.subtitle:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b)
+    end
+    
+    -- Stats section
+    if frame.statsSection then
+        frame.statsSection:SetBackdropColor(theme.sectionBg.r, theme.sectionBg.g, theme.sectionBg.b, theme.sectionBg.a)
+        frame.statsSection:SetBackdropBorderColor(theme.border.r, theme.border.g, theme.border.b, theme.border.a)
+    end
+    
+    -- Labels and values
+    if frame.totalLabel then frame.totalLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b) end
+    if frame.vendorLabel then frame.vendorLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.vendorTotalValue then frame.vendorTotalValue:SetTextColor(theme.goldColor.r, theme.goldColor.g, theme.goldColor.b) end
+    if frame.ahLabel then frame.ahLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.ahTotalValue then frame.ahTotalValue:SetTextColor(theme.ahColor.r, theme.ahColor.g, theme.ahColor.b) end
+    
+    -- Stat row labels and values
+    if frame.sessionGoldLabel then frame.sessionGoldLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.sessionGold then frame.sessionGold:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b) end
+    if frame.itemsValueLabel then frame.itemsValueLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.itemsValue then frame.itemsValue:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b) end
+    if frame.gphLabel then frame.gphLabel:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.gph then frame.gph:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b) end
+    
+    -- Separator
+    if frame.separator then
+        frame.separator:SetColorTexture(theme.separator.r, theme.separator.g, theme.separator.b, theme.separator.a)
+    end
+    
+    -- Duration
+    if frame.durationLabel then frame.durationLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b) end
+    if frame.duration then frame.duration:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b) end
+    
+    -- Items header
+    if frame.itemsHeader then frame.itemsHeader:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b) end
+    if frame.itemCountText then frame.itemCountText:SetTextColor(theme.mutedColor.r - 0.1, theme.mutedColor.g - 0.1, theme.mutedColor.b - 0.1) end
+    if frame.sortLabel then frame.sortLabel:SetTextColor(theme.mutedColor.r, theme.mutedColor.g, theme.mutedColor.b) end
+    
+    -- Sort dropdown
+    if frame.sortDropdown then
+        frame.sortDropdown:SetBackdropColor(theme.dropdownBg.r, theme.dropdownBg.g, theme.dropdownBg.b, theme.dropdownBg.a)
+        frame.sortDropdown:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
+        if frame.sortDropdown.text then
+            frame.sortDropdown.text:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
+        end
+        if frame.sortDropdown.menu then
+            frame.sortDropdown.menu:SetBackdropColor(theme.dropdownMenuBg.r, theme.dropdownMenuBg.g, theme.dropdownMenuBg.b, theme.dropdownMenuBg.a)
+            frame.sortDropdown.menu:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
+        end
+    end
+    
+    -- Sort direction button
+    if frame.sortDirBtn then
+        frame.sortDirBtn:SetBackdropColor(theme.dropdownBg.r, theme.dropdownBg.g, theme.dropdownBg.b, theme.dropdownBg.a)
+        frame.sortDirBtn:SetBackdropBorderColor(theme.dropdownBorder.r, theme.dropdownBorder.g, theme.dropdownBorder.b, theme.dropdownBorder.a)
+    end
+    if frame.sortDirText then frame.sortDirText:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    
+    -- Column headers
+    if frame.headerRow then
+        frame.headerRow:SetBackdropColor(theme.headerRowBg.r, theme.headerRowBg.g, theme.headerRowBg.b, theme.headerRowBg.a)
+    end
+    if frame.colItem then frame.colItem:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.colQty then frame.colQty:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    if frame.colValue then frame.colValue:SetTextColor(theme.labelColor.r, theme.labelColor.g, theme.labelColor.b) end
+    
+    -- Buttons
+    local buttons = { frame.themeBtn, frame.togglePriceBtn, frame.lifetimeBtn, frame.resetBtn }
+    for _, btn in ipairs(buttons) do
+        if btn then
+            btn:SetBackdropColor(theme.buttonBg.r, theme.buttonBg.g, theme.buttonBg.b, theme.buttonBg.a)
+            btn:SetBackdropBorderColor(theme.buttonBorder.r, theme.buttonBorder.g, theme.buttonBorder.b, theme.buttonBorder.a)
+            if btn.label then
+                btn.label:SetTextColor(theme.valueColor.r, theme.valueColor.g, theme.valueColor.b)
+            end
+        end
+    end
+    
+    -- Clear and rebuild item rows with new theme
+    for _, row in ipairs(frame.itemRows) do
+        row:Hide()
+    end
+    frame.itemRows = {}
+    
+    -- Update the item list to apply theme to rows
+    self:UpdateItemList()
 end
 
 -- Sort items based on current mode

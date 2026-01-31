@@ -15,6 +15,7 @@ local defaults = {
         scale = 1.0,
         locked = false,
         visible = false,
+        theme = "auto",  -- "horde", "alliance", or "dark", "auto" = based on player faction
         position = {
             point = "CENTER",
             relativePoint = "CENTER",
@@ -69,6 +70,171 @@ local function DeepCopy(orig)
         copy = orig
     end
     return copy
+end
+
+-- Theme definitions
+addon.themes = {
+    horde = {
+        name = "Horde",
+        -- Main frame colors
+        background = { r = 0.12, g = 0.06, b = 0.06, a = 0.95 },
+        border = { r = 0.5, g = 0.2, b = 0.2, a = 1 },
+        -- Header gradient
+        headerGradient = { r = 0.6, g = 0.15, b = 0.15, a = 0.2 },
+        -- Title color (hex for text)
+        titleColor = "|cffcc3333",
+        titleText = "FARMER",
+        -- Section background
+        sectionBg = { r = 0.15, g = 0.08, b = 0.08, a = 0.5 },
+        -- Separator line
+        separator = { r = 0.5, g = 0.25, b = 0.25, a = 0.5 },
+        -- Text colors
+        labelColor = { r = 0.6, g = 0.5, b = 0.5 },
+        valueColor = { r = 1, g = 0.85, b = 0.7 },
+        mutedColor = { r = 0.5, g = 0.4, b = 0.4 },
+        -- Button colors
+        buttonBg = { r = 0.2, g = 0.1, b = 0.1, a = 1 },
+        buttonBorder = { r = 0.5, g = 0.3, b = 0.3, a = 1 },
+        buttonHoverBg = { r = 0.35, g = 0.15, b = 0.15, a = 1 },
+        buttonHoverBorder = { r = 0.8, g = 0.4, b = 0.4, a = 1 },
+        -- Dropdown colors
+        dropdownBg = { r = 0.15, g = 0.08, b = 0.08, a = 1 },
+        dropdownBorder = { r = 0.5, g = 0.3, b = 0.3, a = 1 },
+        dropdownMenuBg = { r = 0.12, g = 0.06, b = 0.06, a = 0.98 },
+        dropdownHighlight = { r = 0.6, g = 0.2, b = 0.2, a = 0.3 },
+        -- Row colors
+        rowAltBg = { r = 0.8, g = 0.6, b = 0.6, a = 0.03 },
+        rowHighlight = { r = 1, g = 0.8, b = 0.8, a = 0.08 },
+        -- Header row
+        headerRowBg = { r = 0.25, g = 0.1, b = 0.1, a = 0.8 },
+        -- Gold colors
+        goldColor = { r = 1, g = 0.82, b = 0 },
+        ahColor = { r = 0.9, g = 0.5, b = 0.5 },
+        -- Accent for hover
+        accentColor = { r = 0.8, g = 0.3, b = 0.3 },
+    },
+    
+    alliance = {
+        name = "Alliance",
+        -- Main frame colors
+        background = { r = 0.05, g = 0.08, b = 0.14, a = 0.95 },
+        border = { r = 0.2, g = 0.35, b = 0.55, a = 1 },
+        -- Header gradient
+        headerGradient = { r = 0.15, g = 0.3, b = 0.6, a = 0.2 },
+        -- Title color (hex for text)
+        titleColor = "|cff3399ff",
+        titleText = "FARMER",
+        -- Section background
+        sectionBg = { r = 0.06, g = 0.1, b = 0.18, a = 0.5 },
+        -- Separator line
+        separator = { r = 0.25, g = 0.4, b = 0.6, a = 0.5 },
+        -- Text colors
+        labelColor = { r = 0.5, g = 0.6, b = 0.7 },
+        valueColor = { r = 0.8, g = 0.9, b = 1 },
+        mutedColor = { r = 0.4, g = 0.5, b = 0.6 },
+        -- Button colors
+        buttonBg = { r = 0.1, g = 0.15, b = 0.25, a = 1 },
+        buttonBorder = { r = 0.3, g = 0.45, b = 0.6, a = 1 },
+        buttonHoverBg = { r = 0.15, g = 0.25, b = 0.4, a = 1 },
+        buttonHoverBorder = { r = 0.4, g = 0.6, b = 0.9, a = 1 },
+        -- Dropdown colors
+        dropdownBg = { r = 0.08, g = 0.12, b = 0.2, a = 1 },
+        dropdownBorder = { r = 0.3, g = 0.45, b = 0.6, a = 1 },
+        dropdownMenuBg = { r = 0.06, g = 0.1, b = 0.18, a = 0.98 },
+        dropdownHighlight = { r = 0.2, g = 0.4, b = 0.7, a = 0.3 },
+        -- Row colors
+        rowAltBg = { r = 0.6, g = 0.7, b = 0.9, a = 0.03 },
+        rowHighlight = { r = 0.7, g = 0.8, b = 1, a = 0.08 },
+        -- Header row
+        headerRowBg = { r = 0.1, g = 0.18, b = 0.3, a = 0.8 },
+        -- Gold colors
+        goldColor = { r = 1, g = 0.85, b = 0.3 },
+        ahColor = { r = 0.4, g = 0.75, b = 1 },
+        -- Accent for hover
+        accentColor = { r = 0.4, g = 0.6, b = 1 },
+    },
+    
+    dark = {
+        name = "Dark",
+        -- Main frame colors
+        background = { r = 0.08, g = 0.08, b = 0.1, a = 0.95 },
+        border = { r = 0.25, g = 0.25, b = 0.3, a = 1 },
+        -- Header gradient
+        headerGradient = { r = 0.2, g = 0.2, b = 0.25, a = 0.15 },
+        -- Title color (hex for text)
+        titleColor = "|cff9999aa",
+        titleText = "FARMER",
+        -- Section background
+        sectionBg = { r = 0.1, g = 0.1, b = 0.12, a = 0.5 },
+        -- Separator line
+        separator = { r = 0.3, g = 0.3, b = 0.35, a = 0.5 },
+        -- Text colors
+        labelColor = { r = 0.55, g = 0.55, b = 0.6 },
+        valueColor = { r = 0.85, g = 0.85, b = 0.9 },
+        mutedColor = { r = 0.45, g = 0.45, b = 0.5 },
+        -- Button colors
+        buttonBg = { r = 0.12, g = 0.12, b = 0.15, a = 1 },
+        buttonBorder = { r = 0.35, g = 0.35, b = 0.4, a = 1 },
+        buttonHoverBg = { r = 0.2, g = 0.2, b = 0.25, a = 1 },
+        buttonHoverBorder = { r = 0.5, g = 0.5, b = 0.6, a = 1 },
+        -- Dropdown colors
+        dropdownBg = { r = 0.1, g = 0.1, b = 0.13, a = 1 },
+        dropdownBorder = { r = 0.35, g = 0.35, b = 0.4, a = 1 },
+        dropdownMenuBg = { r = 0.08, g = 0.08, b = 0.1, a = 0.98 },
+        dropdownHighlight = { r = 0.4, g = 0.4, b = 0.5, a = 0.3 },
+        -- Row colors
+        rowAltBg = { r = 0.8, g = 0.8, b = 0.85, a = 0.03 },
+        rowHighlight = { r = 1, g = 1, b = 1, a = 0.06 },
+        -- Header row
+        headerRowBg = { r = 0.15, g = 0.15, b = 0.18, a = 0.8 },
+        -- Gold colors
+        goldColor = { r = 0.9, g = 0.8, b = 0.4 },
+        ahColor = { r = 0.5, g = 0.7, b = 0.8 },
+        -- Accent for hover
+        accentColor = { r = 0.6, g = 0.6, b = 0.7 },
+    },
+}
+
+-- Get current theme
+function addon:GetCurrentTheme()
+    local themeName = self:GetSetting("ui.theme") or "auto"
+    
+    -- Auto-detect based on faction
+    if themeName == "auto" then
+        local _, _, raceID = UnitRace("player")
+        -- Horde races: Orc(2), Undead(5), Tauren(6), Troll(8), BloodElf(10), Goblin(9)
+        local hordeRaces = { [2] = true, [5] = true, [6] = true, [8] = true, [9] = true, [10] = true }
+        if hordeRaces[raceID] then
+            themeName = "horde"
+        else
+            themeName = "alliance"
+        end
+    end
+    
+    return self.themes[themeName] or self.themes["dark"]
+end
+
+-- Cycle through themes
+function addon:CycleTheme()
+    local current = self:GetSetting("ui.theme") or "auto"
+    local themeOrder = { "auto", "horde", "alliance", "dark" }
+    local themeNames = { auto = "Auto (Faction)", horde = "Horde", alliance = "Alliance", dark = "Dark" }
+    
+    local currentIndex = 1
+    for i, name in ipairs(themeOrder) do
+        if name == current then
+            currentIndex = i
+            break
+        end
+    end
+    
+    local nextIndex = (currentIndex % #themeOrder) + 1
+    local nextTheme = themeOrder[nextIndex]
+    
+    self:SetSetting("ui.theme", nextTheme)
+    self:Print("Theme changed to: |cff00ff00" .. themeNames[nextTheme] .. "|r")
+    
+    return nextTheme
 end
 
 -- Merge tables (fills in missing values from defaults)

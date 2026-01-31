@@ -79,6 +79,7 @@ function addon:RegisterSlashCommands()
             self:Print("  /lootsesh reset history - Clear all session history")
             self:Print("  /lootsesh reset all - Reset all character data")
             self:Print("  /lootsesh ah - Toggle AH/Vendor price preference")
+            self:Print("  /lootsesh theme - Cycle through themes (Horde/Alliance/Dark)")
             self:Print("  /lootsesh debug - Toggle debug mode")
         elseif cmd == "session" then
             local session = self.charDB.session
@@ -177,6 +178,11 @@ function addon:RegisterSlashCommands()
         elseif cmd == "debug" then
             self.db.debug = not self.db.debug
             self:Print("Debug mode: " .. (self.db.debug and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
+        elseif cmd == "theme" then
+            self:CycleTheme()
+            if self.mainFrame then
+                self:ApplyTheme()
+            end
         elseif cmd == "reset" then
             if args == "session" then
                 self:ResetSession()
